@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# University submission filters
+u[0-9]*.py
+u[0-9]*.ipynb
+*assignment*
+*tutorial*
