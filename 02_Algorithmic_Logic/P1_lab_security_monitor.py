@@ -60,7 +60,34 @@ def process_sensor_burst(readings):
     Ignore 0.0 (pass), Stop if > 5.0 (break).
     """
     # Use a loop to sum valid readings and count them.
+    sum = 0.0
+    count = 0
+    status = "SUCCESS"
+    
+    for value in range(len(readings)):
+        if value == 0.0:
+            pass #skip cylce
+        
+        elif value > 5.0:
+            status = "SENSOR_FAILURE_DETECTED"
+            break #sensor is broken
+        
+        elif value< 1.0: #noise
+            continue # since it's noise, wedo nothing
+        
+        else:
+            sum += value
+            count += 1
+    
+    if count > 0:
+        average = round(sum/count,2)
+    else: 
+        average = 0.0
+    
     # Return (average, status_message)
+    return average, status
+    
+    return round(age, 2)
     pass
 
 def get_error_description(code):
