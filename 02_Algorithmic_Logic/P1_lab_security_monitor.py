@@ -1,124 +1,139 @@
 """
 TITLE: Autonomous Lab Security & Environment Monitor (ALSEM)
-DESCRIPTION: Integrated project covering Sections 1 & 2. 
-             Implements bitwise security, nested climate logic, 
-             and loop-based data processing.
+DESCRIPTION: Integrated firmware simulation for a smart laboratory controller. 
+             Handles bitwise hardware security handshakes, nested environmental 
+             logic, and robust sensor data processing.
 AUTHOR: Junior Ramapuputla
 """
 
 def verify_security_access(access_hex):
     """
-    Task 1: Bitwise & Conditionals
-    Check Bit 0 (Power) and Bit 7 (Admin).
-    Return a string: "Admin", "User", or "Denied".
+    Validates a hexadecimal status register to determine user permissions.
+    Checks power status before evaluating privilege levels.
     """
-    # Convert hex string to int
+    # Parse incoming hexadecimal register
     access_int = int(access_hex, 16)
     
-    # Define Masks: 0x01 (Power), 0x80 (Admin)
-    PWR_MASK = 0x01 #Bit 0: System power (0000 0001)
-    ADM_MASK = 0x80 #Bit 7: Admin Privilege (1000 0000)
+    # Define Bitwise Masks
+    PWR_MASK = 0x01  # Bit 0: Hardware Power Status
+    ADM_MASK = 0x80  # Bit 7: Administrative Privilege
     
-    # Logic: If no power -> Denied. If power + admin -> Admin. Else -> User.
+    # Extract flag states
     is_powered = bool(access_int & PWR_MASK)
     is_admin = bool(access_int & ADM_MASK)
     
+    # Access control logic
     if not is_powered:
-        return "Denied"
+        return "Denied: Hardware Offline"
     
-    if not is_admin:
-        return "User"
-    else:
+    if is_admin:
         return "Admin"
-
-def climate_decision_engine(temp, humidity, is_active):
-    """
-    Task 2: Nested If/Else logic.
-    Categorize system state based on environmental thresholds.
-    """
-    # Logic: 
-    # If not active -> "OFFLINE"
-    # If active -> Check Temp > 30 (then check humidity), Else check Temp < 18...
-
-    if is_active:
-        if temp > 30:
-            if humidity > 70:
-                return "CRITICAL: MOLD RISK"
-            else: return "WARNING: OVERHEAT"
-        elif temp < 18:
-            return "WARNING: UNDER-TEMP"
-        else:
-            return "NOMINAL"
     else:
+        return "Standard User"
+
+
+def evaluate_environmental_state(temp, humidity, is_active):
+    """
+    Determines system safety based on temperature and humidity thresholds.
+    Implements nested logic to identify specific environmental risks.
+    """
+    if not is_active:
         return "OFFLINE"
+
+    if temp > 30.0:
+        # Evaluate mold risk based on high humidity at high temperatures
+        if humidity > 70.0:
+            return "CRITICAL: MOLD RISK"
+        else:
+            return "WARNING: OVERHEAT"
+            
+    elif temp < 18.0:
+        return "WARNING: UNDER-TEMP"
+    
+    else:
+        return "NOMINAL"
     
 
-def process_sensor_burst(readings):
+def process_telemetry_burst(readings):
     """
-    Task 3: Loops (For/While) and Loop Control (Break/Pass).
-    Calculate average voltage from a list. 
-    Ignore 0.0 (pass), Stop if > 5.0 (break).
+    Iterates through a telemetry data packet to calculate average voltage.
+    Handles data noise, clock-cycle skips, and critical sensor failures.
     """
-    # Use a loop to sum valid readings and count them.
-    sum = 0.0
-    count = 0
-    status = "SUCCESS"
+    running_total = 0.0
+    valid_samples = 0
+    system_status = "SUCCESS"
     
-    for value in range(len(readings)):
-        if value == 0.0:
-            pass #skip cylce
+    # Iterate through telemetry values
+    for val in readings:
+        # Ignore 0.0 values (skipped cycles)
+        if val == 0.0:
+            pass 
         
-        elif value > 5.0:
-            status = "SENSOR_FAILURE_DETECTED"
-            break #sensor is broken
+        # Identify short-circuits or sensor failure
+        elif val > 5.0:
+            system_status = "SENSOR_FAILURE_DETECTED"
+            break 
         
-        elif value< 1.0: #noise
-            continue # since it's noise, wedo nothing
+        # Filter low-level signal noise
+        elif val < 1.0:
+            continue 
         
+        # Process valid data
         else:
-            sum += value
-            count += 1
+            running_total += val
+            valid_samples += 1
     
-    if count > 0:
-        average = round(sum/count,2)
+    # Ensure precision and prevent division by zero
+    if valid_samples > 0:
+        average = round(running_total / valid_samples, 2)
     else: 
         average = 0.0
     
-    # Return (average, status_message)
-    return average, status
-    
-    return round(age, 2)
-    pass
+    return average, system_status
 
-def get_error_description(code):
+
+def translate_status_code(code):
     """
-    Task 4: Switch/Case implementation via Dictionary.
-    Map codes 0-3 to descriptions using Unicode symbols.
+    Maps hardware integer codes to technical descriptions using 
+    engineering notation and Unicode symbols.
     """
-    # 0: "SYSTEM_OK", 1: "TEMP_SIGMA_HIGH \u03C3", 2: "VOLT_DROP \u0394", 3: "RES_LOAD \u03A9"
-    # Use .get(code, "UNKNOWN_ERR")
-    pass
+    status_map = {
+        0 : "SYSTEM_OK",
+        1 : "TEMP_SIGMA_HIGH \u03C3",
+        2 : "VOLT_DROP \u0394",
+        3 : "RES_LOAD \u03A9"
+    }
+    
+    return status_map.get(code, "UNKNOWN_ERROR_CODE")
+
 
 def main():
+    """
+    Executes integration testing for the ALSEM firmware module.
+    """
     print("--- 🛡 ALSEM SYSTEM INITIALIZING 🛡 ---\n")
 
-    # 1. TEST SECURITY
-    access_status = verify_security_access("0x81") # Power ON + Admin ON
-    print(f"Access Level: {access_status}")
+    # 1. Security Validation
+    # 0x81 corresponds to Power ON and Admin ON
+    access_level = verify_security_access("0x81") 
+    print(f"Access Level:     {access_level}")
 
-    # 2. TEST CLIMATE
-    # Test case: 32°C and 85% Humidity (Critical Mold Risk)
-    climate_msg = climate_decision_engine(32.0, 85.0, True)
-    print(f"Climate Report: {climate_msg}")
+    # 2. Environmental Analysis
+    # Simulated case: 32°C and 85% Humidity
+    environment_report = evaluate_environmental_state(32.0, 85.0, True)
+    print(f"Climate Report:   {environment_report}")
 
-    # 3. TEST DATA PROCESSING
-    # Should process 1.2, 3.4, skip 0.0, and stop at 9.9
-    raw_data = [1.2, 0.0, 3.4, 9.9, 2.1] 
-    avg_v, data_msg = process_sensor_burst(raw_data)
-    print(f"Voltage Analysis: Avg={avg_v}V | Status: {data_msg}")
+    # 3. Telemetry Processing
+    # Data contains: valid(1.2), skip(0.0), valid(3.4), failure(9.9)
+    telemetry_data = [1.2, 0.0, 3.4, 9.9, 2.1] 
+    v_avg, status_msg = process_telemetry_burst(telemetry_data)
+    print(f"Telemetry Mean:   {v_avg}V | Status: {status_msg}")
 
-    # 4. TEST ERROR DESCRIPTION
-    print(f"Code 2 Translation: {get_error_description(2)}")
+    # 4. Diagnostics Translation
+    print(f"ID Mapping (2):   {translate_status_code(2)}")
+
+    print("\n--- 🛡 SYSTEM STABLE ---")
+
 
 if __name__ == "__main__":
     main()
