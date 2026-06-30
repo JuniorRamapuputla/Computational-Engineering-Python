@@ -1,0 +1,11 @@
+Component,Impedance_Ohms
+"Resistor (100 Ω)","100.0"
+"Resistor (1 kΩ)","1000.0"
+"Inductor (10 mH)","+3.14j"
+"Inductor (150 mH)","+47.12j"
+"Capacitor (10 µF)","-318.31j"
+"Capacitor (47 µF)","-67.73j"
+"Series RC Circuit (100 Ω, 10 µF)","100.0-318.31j"
+"Series RL Circuit (1 kΩ, 150 mH)","1000.0+47.12j"
+"Series RLC Circuit (50 Ω, 100 mH, 47 µF)","50.0-36.31j"
+"Ideal Wire / Short Circuit","0.0"

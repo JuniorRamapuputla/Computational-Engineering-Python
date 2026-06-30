@@ -20,20 +20,20 @@ def findArea(lowerBound = 0, UpperBound = 0):
     
     #using the integration function from scipy
     return integrate.quad(y, lowerBound,UpperBound)
-    
 
 def main():
-    #1.
+    #1. Numpy
     #angle = float(input('Enter the angle in degrees: '))
     # print(f'The value of sinousoidal wave at {angle} \N{DEGREE SIGN} is {findVal(angle)}')
     
-    #2. 
+    #2.1 SciPy
     lowerBound = float(input('Enter the lower bound: '))
     upperBound = float(input('Enter the upper bound: '))
    
     area = round(findArea(lowerBound, upperBound)[0],1)
     
     print(f'The area under the parabola from {lowerBound} to {upperBound} is {area}')
+
 
 if __name__ == '__main__':
     main()
